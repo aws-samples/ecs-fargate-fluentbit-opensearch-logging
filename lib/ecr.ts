@@ -6,7 +6,7 @@ import * as ecrdeploy from 'cdk-ecr-deployment';
 
 export class Ecr extends Construct {
 
-    public readonly fluentbitECR;
+    public readonly fluentbitECR: ecr.IRepository;
 
     constructor(scope: Construct, id: string) {
         super(scope, id);

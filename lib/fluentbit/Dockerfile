@@ -1,4 +1,4 @@
-FROM public.ecr.aws/aws-observability/aws-for-fluent-bit:stable
+FROM --platform=linux/amd64 public.ecr.aws/aws-observability/aws-for-fluent-bit:stable
 
 COPY ./fluent-bit-custom.conf /fluent-bit/etc/fluent-bit-custom.conf
 

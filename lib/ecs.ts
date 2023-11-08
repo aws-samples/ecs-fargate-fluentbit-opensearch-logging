@@ -3,9 +3,11 @@ import {Construct} from "constructs";
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as logs from 'aws-cdk-lib/aws-logs';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import {Duration} from "aws-cdk-lib";
 import * as cdk from 'aws-cdk-lib';
+import {FirelensConfigFileType, FirelensLogRouterType} from "aws-cdk-lib/aws-ecs";
 
 export interface ecsProps {
     executionRole: iam.Role,
@@ -37,11 +39,14 @@ export class Ecs extends Construct {
 
         const nginxLog = new ecs.AwsLogDriver({
             streamPrefix: "nginx-log",
+            logRetention: logs.RetentionDays.ONE_DAY
         })
 
         const fluentBitLog = new ecs.AwsLogDriver({
             streamPrefix: "fluent-bit-log",
+            logRetention: logs.RetentionDays.ONE_DAY
         })
+
 
         //add container definition
         const nginxContainer = taskDefinition.addContainer('nginx', {
@@ -49,7 +54,7 @@ export class Ecs extends Construct {
             memoryLimitMiB: 256,
             cpu: 128,
             essential: true,
-            logging: nginxLog,
+            logging: new ecs.FireLensLogDriver({}),
             portMappings: [
                 {
                     containerPort:80,
@@ -66,13 +71,6 @@ export class Ecs extends Construct {
             },
         });
 
-        const fluentBitContainer = taskDefinition.addContainer('fluent-bit', {
-            image: ecs.ContainerImage.fromEcrRepository(props.fluentBitRepository),
-            memoryLimitMiB: 256,
-            cpu: 128,
-            essential: true,
-            logging: fluentBitLog,
-        });
 
         // Service
         const sg_service = new ec2.SecurityGroup(this, 'MySGService', { vpc: props.ecsVpc });
@@ -92,6 +90,32 @@ export class Ecs extends Construct {
                 },
             ]
         });
+
+        const firelensLogRouter = taskDefinition.addFirelensLogRouter('log-router', {
+            image: ecs.ContainerImage.fromEcrRepository(props.fluentBitRepository),
+            essential: true,
+            firelensConfig: {
+                type: FirelensLogRouterType.FLUENTBIT,
+                options: {
+                    enableECSLogMetadata: true,
+                    configFileType: FirelensConfigFileType.FILE,
+                    // This enables parsing of log messages that are json lines
+                    configFileValue: '/fluent-bit/etc/fluent-bit-custom.conf'
+                }
+            },
+            memoryReservationMiB: 50,
+            logging: fluentBitLog,
+            healthCheck: {
+                command: [ "CMD-SHELL", "curl -f http://127.0.0.1:2020/api/v1/uptime || exit 0" ],
+                // the properties below are optional
+                interval: Duration.seconds(30),
+                retries: 3,
+                startPeriod: Duration.seconds(10),
+                timeout: Duration.seconds(30),
+            },
+        });
+
+        firelensLogRouter.logDriverConfig;
 
         // Setup AutoScaling policy
         const scaling = ecsService.autoScaleTaskCount({ maxCapacity: 2, minCapacity: 1 });

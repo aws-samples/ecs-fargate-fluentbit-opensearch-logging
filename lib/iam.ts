@@ -19,17 +19,8 @@ export class Iam extends Construct {
         const executionPolicy = iam.ManagedPolicy.fromManagedPolicyArn(this, 'AmazonECSTaskExecutionRolePolicy',
             'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy')
 
-        this.ecsTaskExecutionRole = new iam.Role(this, 'ecs-task-execution-role', {
-            roleName: `ecs-task-execution-role-${cdk.Stack.of(this).region}`,
-            assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
-        });
-        this.ecsTaskExecutionRole.addManagedPolicy(executionPolicy)
-
-        this.ecsTaskRole = new iam.Role(this, 'ecs-task-role', {
-            roleName: `ecs-task-role-${cdk.Stack.of(this).region}`,
-            assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
-        });
-        this.ecsTaskRole.addManagedPolicy(executionPolicy)
+        const s3FullAccessPolicy = iam.ManagedPolicy.fromManagedPolicyArn(this, 'AmazonS3FullAccess',
+            'arn:aws:iam::aws:policy/AmazonS3FullAccess')
 
         // policy document
         const fluentbitRolePolicyDocument = iam.PolicyDocument.fromJson({
@@ -62,6 +53,21 @@ export class Iam extends Construct {
             policyName: 'ecs-fluentbit-policy',
             document: fluentbitRolePolicyDocument,
         });
+
+        this.ecsTaskExecutionRole = new iam.Role(this, 'ecs-task-execution-role', {
+            roleName: `ecs-task-execution-role-${cdk.Stack.of(this).region}`,
+            assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
+        });
+        this.ecsTaskExecutionRole.addManagedPolicy(executionPolicy)
+        this.ecsTaskExecutionRole.addManagedPolicy(s3FullAccessPolicy)
+
+        this.ecsTaskRole = new iam.Role(this, 'ecs-task-role', {
+            roleName: `ecs-task-role-${cdk.Stack.of(this).region}`,
+            assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
+        });
+        this.ecsTaskRole.addManagedPolicy(executionPolicy)
+        this.ecsTaskRole.addManagedPolicy(s3FullAccessPolicy)
+
         this.fluentBitRole = new iam.Role(this, 'fluentBitRole', {
             assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
             roleName: "ecs-fluentbit-role"

@@ -69,6 +69,7 @@ export class Vpc extends Construct {
             allowAllOutbound: true,
         })
         this.proxyEC2SG.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), 'Allow public 80 traffic');
+        this.proxyEC2SG.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(8081), 'Allow public 8081 traffic');
         this.proxyEC2SG.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'Allow public ssh traffic');
         // Security Group end -------------------------------------------------------------------------------------
 

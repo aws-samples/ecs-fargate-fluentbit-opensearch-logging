@@ -3,7 +3,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import {Construct} from "constructs";
 import {readFileSync} from 'fs';
 import {Domain} from 'aws-cdk-lib/aws-opensearchservice';
-import {AmazonLinuxCpuType, AmazonLinuxGeneration, MachineImage} from "aws-cdk-lib/aws-ec2";
+import {AmazonLinuxCpuType, MachineImage} from "aws-cdk-lib/aws-ec2";
 
 export interface ec2Props {
     vpc: ec2.Vpc,

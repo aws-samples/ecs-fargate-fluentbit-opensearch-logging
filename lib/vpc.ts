@@ -8,6 +8,8 @@ export class Vpc extends Construct {
     public readonly vpc: ec2.Vpc;
     public readonly publicHttpSG: ec2.SecurityGroup;
     public readonly containerHttpSG: ec2.SecurityGroup;
+    public readonly opensearchSG: ec2.SecurityGroup;
+    public readonly proxyEC2SG: ec2.SecurityGroup;
 
     constructor(scope: Construct, id: string) {
         super(scope, id);
@@ -30,7 +32,7 @@ export class Vpc extends Construct {
             ],
         });
 
-        // Security group -------------------------------------------------------------------------------------------
+        // Security group start --------------------------------------------------------------------------------------
         this.publicHttpSG = new ec2.SecurityGroup(this, 'public-http', {
             securityGroupName: 'public-http-sg',
             vpc: this.vpc,
@@ -52,7 +54,23 @@ export class Vpc extends Construct {
         this.containerHttpSG.addIngressRule(this.publicHttpSG, ec2.Port.tcp(80), 'Allow HTTP traffic');
         this.containerHttpSG.addIngressRule(this.publicHttpSG, ec2.Port.tcp(443), 'Allow HTTPS traffic');
 
-        // Security Group -------------------------------------------------------------------------------------------
+        // opensearch security group
+        this.opensearchSG = new ec2.SecurityGroup(this, 'opensearch-sg', {
+            securityGroupName: 'openserach-sg',
+            vpc: this.vpc,
+            allowAllOutbound: true,
+        })
+        this.opensearchSG.addIngressRule(ec2.Peer.ipv4(Constants.VPC_CIDR), ec2.Port.allTraffic(), 'Allow all VPC traffic');
+
+        // ec2 proxy security group
+        this.proxyEC2SG = new ec2.SecurityGroup(this, 'ec2-proxy-sg', {
+            securityGroupName: 'ec2-proxy-sg',
+            vpc: this.vpc,
+            allowAllOutbound: true,
+        })
+        this.proxyEC2SG.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), 'Allow public 80 traffic');
+        this.proxyEC2SG.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(22), 'Allow public ssh traffic');
+        // Security Group end -------------------------------------------------------------------------------------
 
         // Output VPC ID
         new cdk.CfnOutput(this, 'VPCId', {

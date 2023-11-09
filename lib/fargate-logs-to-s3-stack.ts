@@ -6,6 +6,8 @@ import {Iam} from "./iam";
 import {Ecr} from "./ecr";
 import {Ecs} from "./ecs";
 import {Lambda} from "./Lambda";
+import {Opensearch} from "./opensearch";
+import {ProxyEC2} from "./ec2";
 
 export class FargateLogsToS3Stack extends cdk.Stack {
 
@@ -17,8 +19,8 @@ export class FargateLogsToS3Stack extends cdk.Stack {
 
     const ecsIam = new Iam(this, "ecsIam", {
       logs3: logs3.logs3,
-    })
-    const fluentbitECR = new Ecr(this,"fluentbit-ecr")
+    });
+    const fluentbitECR = new Ecr(this,"fluentbit-ecr");
 
     const ecsNginx = new Ecs(this, 'nginxECS', {
       executionRole: ecsIam.ecsTaskExecutionRole,
@@ -26,6 +28,15 @@ export class FargateLogsToS3Stack extends cdk.Stack {
       fulentBitRole: ecsIam.fluentBitRole,
       fluentBitRepository: fluentbitECR.fluentbitECR,
       ecsVpc: ecs_vpc.vpc
-    })
+    });
+
+    const opensearchDomain = new Opensearch(this, 'log-openserach', {vpc: ecs_vpc.vpc,
+      opensearchSG: ecs_vpc.opensearchSG});
+
+    const opensearchProxyEC2 = new ProxyEC2(this, 'proxy-ec2', {vpc: ecs_vpc.vpc,
+      ec2ProxySG: ecs_vpc.proxyEC2SG,
+      domain: opensearchDomain.domain,
+      domainEndpoint: opensearchDomain.domainEndpoint});
+
   }
 }

@@ -33,28 +33,11 @@ export const handler = async (event: S3Event, context: Context): Promise<S3Event
             // 解析JSON数据
             try {
                 jsonArray.push(JSON.stringify({ 'index': { '_index': indexName } }) + '\n');
-                console.log(jsonLine)
                 jsonArray.push(jsonLine + '\n');
             } catch (e) {
                 console.error(`Failed to parse JSON: ${jsonLine}. Error: ${e}`);
             }
         }
-        console.log(jsonArray);
-
-        // jsonArray.push(JSON.stringify({ 'index': { '_index': indexName } }) + '\n');
-        // jsonArray.push(JSON.stringify({
-        //     'date': '2023-11-11T15:00:45.000000Z',
-        //     "remote": "127.0.0.1",
-        //     "host": "-",
-        //     "user": "-",
-        //     "method": "GET",
-        //     "path": "/",
-        //     "code": "200",
-        //     "size": "615",
-        //     "referer": "-",
-        //     "agent": "curl/7.88.1"
-        // }) + '\n');
-        // console.log(jsonArray);
         try {
             // 构造 OpenSearch 数据对象
             // 发送 POST 请求到 OpenSearch

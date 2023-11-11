@@ -4,6 +4,7 @@ import {Construct} from "constructs";
 import {readFileSync} from 'fs';
 import {Domain} from 'aws-cdk-lib/aws-opensearchservice';
 import {AmazonLinuxCpuType, MachineImage} from "aws-cdk-lib/aws-ec2";
+import * as cdk from "aws-cdk-lib";
 
 export interface ec2Props {
     vpc: ec2.Vpc,
@@ -43,5 +44,9 @@ export class ProxyEC2 extends Construct {
         const userDataScript = readFileSync('./lib/ec2/user-data.sh', 'utf8')
             .replace("${OpenSearch_Endpoint}", props.domainEndpoint);
         ec2Instance.addUserData(userDataScript)
+
+        new cdk.CfnOutput(this, 'open-search-proxy-endpoint', {
+            value: 'http://' + ec2Instance.instancePublicIp + ':8081/_dashboards',
+        });
     }
 }

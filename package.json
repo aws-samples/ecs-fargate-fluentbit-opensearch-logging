@@ -23,10 +23,11 @@
     "typescript": "~5.0.4"
   },
   "dependencies": {
-    "aws-cdk-lib": "2.85.0",
+    "aws-cdk-lib": "^2.154.0",
     "axios": "^1.6.1",
     "cdk-ecr-deployment": "^2.5.30",
     "constructs": "^10.0.0",
+    "punycode": "^2.3.1",
     "source-map-support": "^0.5.21"
   }
 }

@@ -50,7 +50,7 @@ export class Ecs extends Construct {
 
         //add container definition
         const nginxContainer = taskDefinition.addContainer('nginx', {
-            image: ecs.ContainerImage.fromRegistry('nginx'),
+            image: ecs.ContainerImage.fromRegistry('public.ecr.aws/nginx/nginx:latest'),
             memoryLimitMiB: 256,
             cpu: 128,
             essential: true,

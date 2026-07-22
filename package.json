@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "aws-cdk-lib": "^2.154.0",
-    "axios": "^1.6.1",
+    "axios": "^1.18.0",
     "cdk-ecr-deployment": "^2.5.30",
     "constructs": "^10.0.0",
     "punycode": "^2.3.1",
